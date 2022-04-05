@@ -1,0 +1,74 @@
+string T = string.Empty;
+string xYear = string.Empty;
+string BatchNumPref = string.Empty;
+int lengthBatchNumPref = 0;
+int NumNow = 0;
+string Num = string.Empty;
+string NomorSaatIni = string.Empty;
+int NomorSaatIniAngka = 0;
+string NomorSaatIniString = string.Empty;
+string NomorSelanjutnya = string.Empty;
+string xYears = string.Empty;
+
+
+var ttUD101_xRow = (from ttUD101_Row in ttUD101
+where ttUD101_Row. Company == Session.CompanyID
+&& ttUD101_Row.RowMod == "A"
+select ttUD101_Row).FirstOrDefault();
+{ 
+    if (ttUD101_xRow != null)
+    {
+        /*
+        ^ Jika External tidak diceklis, format :
+        YYMMIA99999
+        YY = Year
+        MM = Month
+        I = hardcode
+        A/B = Shift
+        99999 = Running Number per bulan
+        */
+       
+        DateTime dt = DateTime.Today;
+        //DateTime dt = Convert.ToDateTime(ttUD101_xRow.Date01);
+        string cDay = Convert.ToString(dt.Day);
+        string cMonth = Convert.ToString(dt.Month);
+        if (cMonth.Length == 1)
+        {
+            cMonth = "0" + cMonth;
+        }
+        string cYear = Convert.ToString(dt.Year).Substring(2,2);
+        string Type = "IM";
+        string _Departement = ttUD101_xRow.ShortChar02.Substring(0,3);
+        BatchNumPref =  Type + "." + _Departement.Trim() + "/" + cYear + "/" + cMonth + "/"; 
+        lengthBatchNumPref = BatchNumPref.Length;
+        var UD101_xRow = (from UD101_Row in Db.UD101
+        where UD101_Row.Company == Session.CompanyID 
+        && UD101_Row.Key1.StartsWith(BatchNumPref)   
+        orderby UD101_Row.Key1 descending 
+        select UD101_Row).FirstOrDefault();
+        {
+            if (UD101_xRow == null)
+            {
+                ttUD101_xRow.Key1 = BatchNumPref + "00001";
+            }   
+            else
+            {
+                NomorSaatIni = UD101_xRow.Key1.SubString(lengthBatchNumPref, 5);
+                NomorSaatIniAngka = Convert.ToInt32(NomorSaatIni) + 1;
+                NomorSaatIniString = NomorSaatIniAngka.ToString();
+                if (NomorSaatIniAngka < 10)
+                  NomorSelanjutnya =  "0000" + NomorSaatIniString;
+                else if (NomorSaatIniAngka < 100)
+                  NomorSelanjutnya =  "000" + NomorSaatIniString;
+                else if (NomorSaatIniAngka < 1000)
+                  NomorSelanjutnya =  "00" + NomorSaatIniString;
+                else if (NomorSaatIniAngka < 10000)
+                  NomorSelanjutnya =  "0" + NomorSaatIniString;
+                else
+                  NomorSelanjutnya = NomorSaatIniString;
+              
+                ttUD101_xRow.Key1 = BatchNumPref + NomorSelanjutnya;
+            }
+        }
+    }
+}
