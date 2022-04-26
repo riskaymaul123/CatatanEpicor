@@ -1,0 +1,2 @@
+select REPLACE(REPLACE('test 
+test', CHAR(13),' '), CHAR(10),' ');
