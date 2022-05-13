@@ -1,0 +1,4 @@
+select  x.CustID,x.CustNum,x.name,x.creditLimit_c,coalesce(x.TotalInvoiceOutstanding,0),coalesce(x.creditLimit_c-x.TotalInvoiceOutstanding,0) sisalimit from  (
+select a.CustID,a.CustNum,a.Name,a.creditLimit_c,(select sum(b.InvoiceBal) from InvcHead b where b.CustNum=a.CustNum) as TotalInvoiceOutstanding
+ from Customer a
+ ) x
